@@ -19,4 +19,5 @@ source installation.sh
 
 # Run the program
 # python3 main.py -val=0 --save_params=1 --load_params=0
-jupyter nbconvert --to notebook --execute datacrunch.ipynb
+python -m ipykernel install --user --name=.venv --display-name "Python (.venv)"
+jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=".venv" datacrunch.ipynb
