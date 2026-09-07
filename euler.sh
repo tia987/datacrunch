@@ -2,9 +2,9 @@
 #SBATCH --job-name=AML25            # Job name    (default: sbatch)
 #SBATCH --output=aml.out            # Output file (default: slurm-%j.out)
 #SBATCH --error=aml.err             # Error file  (default: slurm-%j.out)
-#SBATCH --nodes=1                   # Number of nodes
-#SBATCH --ntasks=1                  # Number of tasks
-#SBATCH --ntasks-per-node=1         # Number of tasks per node
+#SBATCH --nodes=6                   # Number of nodes
+#SBATCH --ntasks=48                  # Number of tasks
+#SBATCH --ntasks-per-node=8         # Number of tasks per node
 #SBATCH --constraint=EPYC_7763      # Select node with CPU
 #SBATCH --mem-per-cpu=1024          # Memory per CPU
 #SBATCH --time=24:00:00             # Wall clock time limit
@@ -19,4 +19,4 @@ source installation.sh
 
 # Run the program
 # python3 main.py -val=0 --save_params=1 --load_params=0
-jupyter nbconvert --execute datacrunch.ipynb
+jupyter nbconvert --to notebook --execute your_notebook.ipynb
