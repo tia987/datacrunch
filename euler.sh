@@ -19,4 +19,4 @@ source installation.sh
 
 # Run the program
 # python3 main.py -val=0 --save_params=1 --load_params=0
-jupyter nbconvert --to notebook --execute your_notebook.ipynb
+jupyter nbconvert --to notebook --execute datacrunch.ipynb
