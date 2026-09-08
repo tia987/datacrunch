@@ -34,4 +34,9 @@ jupyter nbconvert \
     --to notebook \
     --execute \
     --ExecutePreprocessor.kernel_name=.venv \
-    datacrunch.ipynb
+    pretrain_transformer.ipynb
+# jupyter nbconvert \
+#     --to notebook \
+#     --execute \
+#     --ExecutePreprocessor.kernel_name=.venv \
+#     datacrunch.ipynb
