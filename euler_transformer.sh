@@ -2,11 +2,11 @@
 #SBATCH --job-name=TRA25            # Job name    (default: sbatch)
 #SBATCH --output=TRA.out            # Output file (default: slurm-%j.out)
 #SBATCH --error=TRA.err             # Error file  (default: slurm-%j.out)
-#SBATCH --nodes=1                   # Number of nodes
-#SBATCH --ntasks=1                  # Number of tasks
-#SBATCH --ntasks-per-node=1         # Number of tasks per node
+#SBATCH --nodes=8                   # Number of nodes
+#SBATCH --ntasks=48                 # Number of tasks
+#SBATCH --ntasks-per-node=6         # Number of tasks per node
 #SBATCH --constraint=EPYC_7763      # Select node with CPU
-#SBATCH --mem-per-cpu=64000         # Memory per CPU
+#SBATCH --mem=70G                   # Memory per CPU
 #SBATCH --time=36:00:00             # Wall clock time limit
 #SBATCH --mail-type=END,FAIL        # Send an email when job ends
 
