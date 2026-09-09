@@ -7,7 +7,7 @@
 #SBATCH --ntasks-per-node=1         # Number of tasks per node
 #SBATCH --cpus-per-task=64          # Number of tasks per task
 #SBATCH --constraint=EPYC_7763      # Select node with CPU
-#SBATCH --mem-per-cpu=1G.           # Memory per CPU
+#SBATCH --mem-per-cpu=1G            # Memory per CPU
 #SBATCH --time=36:00:00             # Wall clock time limit
 #SBATCH --mail-type=END,FAIL        # Send an email when job ends
 
