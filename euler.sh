@@ -5,7 +5,7 @@
 #SBATCH --nodes=1                   # Number of nodes
 #SBATCH --ntasks=1                  # Number of tasks
 #SBATCH --ntasks-per-node=1         # Number of tasks per node
-#SBATCH --ntasks-per-task=64        # Number of tasks per task
+#SBATCH --cpus-per-task=64          # Number of tasks per task
 #SBATCH --constraint=EPYC_7763      # Select node with CPU
 #SBATCH --mem-per-cpu=1G.           # Memory per CPU
 #SBATCH --time=36:00:00             # Wall clock time limit
