@@ -21,19 +21,21 @@ source installation.sh
 
 # Run the program
 # python3 main.py -val=0 --save_params=1 --load_params=0
-python -m pip install ipykernel
+# python -m pip install ipykernel
 
-# Register the venv as a Jupyter kernel
-python -m ipykernel install --user \
-    --name=.venv \
-    --display-name "Python (.venv)"
+# # Register the venv as a Jupyter kernel
+# python -m ipykernel install --user \
+#     --name=.venv \
+#     --display-name "Python (.venv)"
 
-# Verify registration
-jupyter kernelspec list
+# # Verify registration
+# jupyter kernelspec list
 
-# Execute notebook
-jupyter nbconvert \
-    --to notebook \
-    --execute \
-    --ExecutePreprocessor.kernel_name=.venv \
-    pretrain_transformer.ipynb
+# # Execute notebook
+# jupyter nbconvert \
+#     --to notebook \
+#     --execute \
+#     --ExecutePreprocessor.kernel_name=.venv \
+#     pretrain_transformer.ipynb
+
+python pretrain_transformer.py
