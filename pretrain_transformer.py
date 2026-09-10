@@ -195,8 +195,8 @@ PRETRAIN_LR = 3e-4
 
 # MEMORY FIX 2: Reduce batch size and use gradient accumulation
 # 512 * 16 = 8192 (maintaining your original effective batch size)
-PRETRAIN_BATCH_SIZE = 512  
-ACCUMULATION_STEPS = 16    
+PRETRAIN_BATCH_SIZE = 512//2  
+ACCUMULATION_STEPS = 16//2    
 WEIGHT_DECAY = 1e-5
 
 
