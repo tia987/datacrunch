@@ -246,7 +246,7 @@ for epoch in range(PRETRAIN_EPOCHS):
     
     for i, start in enumerate(tqdm(range(0, n_train, PRETRAIN_BATCH_SIZE))):
         idx = perm[start:start + PRETRAIN_BATCH_SIZE]
-        xb = X_fit_bins_t[idx].to(DEVICE)
+        xb = X_fit_bins_t[idx].long().to(DEVICE)
         yb = y_fit_tensor[idx].to(DEVICE)
         
         # Mixed Precision Forward Pass
