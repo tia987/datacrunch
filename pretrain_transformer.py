@@ -40,6 +40,7 @@ import torch
 import torch.nn as nn
 from scipy.stats import spearmanr
 
+from tqdm import tqdm
 import crunch
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -243,7 +244,7 @@ for epoch in range(PRETRAIN_EPOCHS):
     perm = torch.randperm(n_train)
     optimizer.zero_grad()  # Reset gradients outside the sub-batch loop
     
-    for i, start in enumerate(range(0, n_train, PRETRAIN_BATCH_SIZE)):
+    for i, start in enumerate(tqdm(range(0, n_train, PRETRAIN_BATCH_SIZE))):
         idx = perm[start:start + PRETRAIN_BATCH_SIZE]
         xb = X_fit_bins_t[idx].long().to(DEVICE)   # upcast to int64 only for this batch
         yb = y_fit_tensor[idx].to(DEVICE)
