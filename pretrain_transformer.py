@@ -133,9 +133,14 @@ def load_checkpoint(path, device="cpu"):
 
 
 X_train, y_train, X_test = crunch_tools.load_data()
+
+# MEMORY FIX 1: Immediately drop the unused test set to free up system RAM
+del X_test
+gc.collect()
+
 feature_columns = get_feature_columns(X_train)
 print(f"{len(feature_columns)} features, {len(X_train):,} rows")
-report_memory("after load_data()")
+report_memory("after load_data() and freeing test set")
 
 # Features are already quantized into 7 bins (0-6) -- int8 instead of the
 # default float64 cuts memory roughly 8x. This is the single biggest lever
@@ -187,19 +192,15 @@ PRETRAIN_CONFIG = {
 }
 PRETRAIN_EPOCHS = 30
 PRETRAIN_LR = 3e-4
-PRETRAIN_BATCH_SIZE = 8192
+
+# MEMORY FIX 2: Reduce batch size and use gradient accumulation
+# 512 * 16 = 8192 (maintaining your original effective batch size)
+PRETRAIN_BATCH_SIZE = 512  
+ACCUMULATION_STEPS = 16    
 WEIGHT_DECAY = 1e-5
 
 
 # Manual batching over in-memory tensors -- no DataLoader/multiprocessing.
-# DataLoader's worker-process machinery exists to parallelize expensive
-# per-item work (disk reads, decoding, etc.); we have none of that, the
-# whole feature matrix is already a plain array in RAM. Manual slicing is
-# simpler AND sidesteps a real gotcha: on macOS/Windows, DataLoader workers
-# start via `spawn`, which re-imports __main__ to find classes like a
-# custom Dataset -- that doesn't work for classes defined in a notebook
-# cell, so num_workers>0 fails there with an AttributeError.
-#
 # Memory: X_fit_bins/X_val_bins are int8 (1 byte/value). nn.Embedding
 # requires int64 indices, but casting the WHOLE array to .long() up front
 # turns that back into an 8-bytes/value tensor -- undoing the int8 cast
@@ -215,6 +216,10 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=PRETRAIN_LR, weight_decay=W
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=PRETRAIN_EPOCHS)
 loss_fn = nn.MSELoss()
 
+# MEMORY FIX 3: Initialize scaler for PyTorch Mixed Precision (AMP)
+use_amp = (DEVICE == "cuda")
+scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+
 
 def predict_in_batches(model, X_bins_t, batch_size=PRETRAIN_BATCH_SIZE):
     """Batched inference -- same int8-stays-int8-until-the-last-moment
@@ -224,7 +229,8 @@ def predict_in_batches(model, X_bins_t, batch_size=PRETRAIN_BATCH_SIZE):
     with torch.no_grad():
         for start in range(0, len(X_bins_t), batch_size):
             xb = X_bins_t[start:start + batch_size].long().to(DEVICE)
-            preds.append(model(xb).cpu().numpy())
+            with torch.autocast(device_type="cuda" if use_amp else "cpu", enabled=use_amp):
+                preds.append(model(xb).cpu().numpy())
     return np.concatenate(preds)
 
 
@@ -235,17 +241,33 @@ for epoch in range(PRETRAIN_EPOCHS):
     model.train()
     total_loss = 0.0
     perm = torch.randperm(n_train)
-    for start in range(0, n_train, PRETRAIN_BATCH_SIZE):
+    optimizer.zero_grad()  # Reset gradients outside the sub-batch loop
+    
+    for i, start in enumerate(range(0, n_train, PRETRAIN_BATCH_SIZE)):
         idx = perm[start:start + PRETRAIN_BATCH_SIZE]
         xb = X_fit_bins_t[idx].long().to(DEVICE)   # upcast to int64 only for this batch
         yb = y_fit_tensor[idx].to(DEVICE)
-        optimizer.zero_grad()
-        pred = model(xb)
-        loss = loss_fn(pred, yb)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        total_loss += loss.item() * len(yb)
+        
+        # Mixed Precision Forward Pass
+        with torch.autocast(device_type="cuda" if use_amp else "cpu", enabled=use_amp):
+            pred = model(xb)
+            loss = loss_fn(pred, yb)
+            # Scale the loss since we are accumulating gradients
+            scaled_loss = loss / ACCUMULATION_STEPS
+            
+        # Backward Pass via scaler
+        scaler.scale(scaled_loss).backward()
+        
+        # Update weights only after ACCUMULATION_STEPS iterations
+        if (i + 1) % ACCUMULATION_STEPS == 0 or (start + PRETRAIN_BATCH_SIZE) >= n_train:
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+            
+        total_loss += loss.item() * len(yb)  # Track raw loss for reporting
+
     scheduler.step()
 
     val_pred = predict_in_batches(model, X_val_bins_t)
@@ -268,4 +290,3 @@ save_checkpoint(
 )
 print(f"Saved checkpoint to {CHECKPOINT_PATH}")
 print("Upload this file as a resource alongside competition_transformer.ipynb.")
-
