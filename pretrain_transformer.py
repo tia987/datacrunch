@@ -267,6 +267,7 @@ for epoch in range(PRETRAIN_EPOCHS):
             optimizer.zero_grad()
             
         total_loss += loss.item() * len(yb)  # Track raw loss for reporting
+        print(f"loss={total_loss}")
 
     scheduler.step()
 
