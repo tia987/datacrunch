@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=TRA25            # Job name    (default: sbatch)
-#SBATCH --output=TRA.out            # Output file (default: slurm-%j.out)
-#SBATCH --error=TRA.err             # Error file  (default: slurm-%j.out)
+#SBATCH --output=tra.out            # Output file (default: slurm-%j.out)
+#SBATCH --error=tra.err             # Error file  (default: slurm-%j.out)
 #SBATCH --nodes=1                   # Number of nodes
 #SBATCH --ntasks=1                  # Number of tasks
 #SBATCH --ntasks-per-node=1         # Number of tasks per node
