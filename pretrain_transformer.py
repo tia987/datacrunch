@@ -191,13 +191,13 @@ PRETRAIN_CONFIG = {
     "n_layers": 3,
     "dropout": 0.1,
 }
-PRETRAIN_EPOCHS = 30
+PRETRAIN_EPOCHS = 2
 PRETRAIN_LR = 3e-4
 
 # MEMORY FIX 2: Reduce batch size and use gradient accumulation
 # 512 * 16 = 8192 (maintaining your original effective batch size)
-PRETRAIN_BATCH_SIZE = 512//2  
-ACCUMULATION_STEPS = 16//2    
+PRETRAIN_BATCH_SIZE = 512
+ACCUMULATION_STEPS = 16    
 WEIGHT_DECAY = 1e-5
 
 
@@ -246,7 +246,7 @@ for epoch in range(PRETRAIN_EPOCHS):
     
     for i, start in enumerate(tqdm(range(0, n_train, PRETRAIN_BATCH_SIZE))):
         idx = perm[start:start + PRETRAIN_BATCH_SIZE]
-        xb = X_fit_bins_t[idx].long().to(DEVICE)   # upcast to int64 only for this batch
+        xb = X_fit_bins_t[idx].to(DEVICE)
         yb = y_fit_tensor[idx].to(DEVICE)
         
         # Mixed Precision Forward Pass
